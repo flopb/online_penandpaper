@@ -1,0 +1,13 @@
+version: '2'
+services:
+  online_penandpaper:
+    build: .
+    container_name: online_penandpaper
+    environment:
+      URL: localhost
+    ports:
+      - "8000:80"
+    volumes:
+      - ./data/www:/etc/nginx/html
+    domainname: localhost
+    restart: always
