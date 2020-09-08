@@ -6,6 +6,15 @@
     <title>Shadowrun</title>
     <link rel="stylesheet" type="text/css" href="./sr_style.css">
 </head>
+<link rel="stylesheet"
+      href="https://fonts.googleapis.com/css?family=Orbitron">
+<style>
+    body, button, input, div {
+        font-family: 'Orbitron', serif;
+    }
+
+</style>
+
 <style>
     a {
         color: hotpink;
@@ -32,8 +41,11 @@ Currently playing:
         <td>
             <div id="meet"></div>
         </td>
-        <td style="vertical-align: top;">
-            Dices: <input style="width:30px;" type="number" min="1" max="50"> <input type="button" value="Roll">
+        <td style="vertical-align: top;text-align:left;">
+            Dices: <input style="width:30px;" type="number" min="1" max="50">
+            <input id="button_public_dice" type="button" value="Roll Public">
+            <input id="button_private_dice" type="button" value="Roll Private"><br/><br/>
+            <div id="dice_message"></div>
             <div id="dice" style="font-size: 100px;"></div>
         </td>
     </tr>
@@ -43,6 +55,8 @@ Currently playing:
 <script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.js"
         integrity="sha256-yr4fRk/GU1ehYJPAs8P4JlTgu0Hdsp4ZKrx8bDEDC3I=" crossorigin="anonymous"></script>
 <script type="text/javascript" charset="utf-8">
+    var socket = null;
+
     function getCookie(name) {
         var match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
         if (match) return match[2];
@@ -59,7 +73,7 @@ Currently playing:
         // Connect to the Socket.IO server.
         // The connection URL has the following format, relative to the current page:
         //     http[s]://<domain>:<port>[/<namespace>]
-        var socket = io("https://sr.pc-kurs.net" + namespace, {
+        socket = io("https://sr.pc-kurs.net" + namespace, {
             path: '/socket/socket.io',
             query: {apikey: getCookie("apikey")}
         });
@@ -71,6 +85,10 @@ Currently playing:
             socket.emit('my_event', {data: 'I\'m connected'});
         });
 
+        socket.on('my_broadcast_event', function (msg, cb) {
+            console.log("GOT BROADCAST", msg)
+        });
+
         // Event handler for server sent data.
         // The callback function is invoked whenever the server emits data
         // to the client. The data is then displayed in the "Received"
@@ -80,6 +98,12 @@ Currently playing:
             console.log("My Response from socketio:", msg)
             if (cb)
                 cb();
+            if (msg.data.call_function == "startDiceRolling") {
+                startDiceRolling(msg.data.user, msg.data.diceCount)
+            }
+            if (msg.data.call_function == "showRollResult") {
+                showDiceResult(msg.data.result, msg.data.user, msg.data.diceCount)
+            }
         });
 
         // Interval function that tests message latency by sending a "ping"
@@ -148,35 +172,82 @@ Currently playing:
 </script>
 <script src='https://meet.crowdsoft.net/external_api.js'></script>
 <script type="text/javascript">
-    document.querySelector('input[type=button]').addEventListener('click', function () {
+    document.getElementById('button_public_dice').addEventListener('click', function () {
+        rollDicesPublic();
+    });
+
+    document.getElementById('button_private_dice').addEventListener('click', function () {
         animateDiceRoll();
     });
 
-    function animateDiceRoll() {
+    function rollDicesPublic() {
+        let diceCount = document.querySelector('input[type=number]').value || 1;
+        socket.emit('my_broadcast_event', {
+            data: {
+                "call_function": "startDiceRolling",
+                "user": globalName,
+                "diceCount": diceCount
+            }
+        });
+        setTimeout(function () {
+            socket.emit('my_broadcast_event', {
+                data: {
+                    "call_function": "showRollResult",
+                    "result": rollTheDice(),
+                    "user": globalName,
+                    "diceCount": diceCount
+                }
+            });
+        }, 1500)
+
+    }
+
+    var globalRollIntervall = null
+
+    function startDiceRolling(user, diceCount) {
+        document.getElementById('dice_message').innerHTML = user + " würfelt " + diceCount + "W6: ";
+        globalRollIntervall = animateDiceRoll(diceCount)
+    }
+
+    function showDiceResult(result, user, diceCount) {
+        clearInterval(globalRollIntervall)
+        document.getElementById('dice').style.color = "green"
+        document.getElementById('dice_message').innerHTML = user + " hat " + diceCount + "W6 gewürfelt: ";
+        document.getElementById('dice').innerHTML = result;
+    }
+
+    function animateDiceRoll(diceCount = null) {
         document.getElementById('dice').style.color = "yellow"
         var callCount = 1;
-        var maxrolls = Math.floor(Math.random() * 20);
+        var maxrolls = 0;
+        if (diceCount != null) {
+            maxrolls = Math.floor(Math.random() * 50);
+        } else {
+            maxrolls = Math.floor(Math.random() * 20);
+        }
         var repeater = setInterval(function () {
             if (callCount < maxrolls) {
-                rollTheDice();
+                rollTheDice(diceCount);
                 callCount += 1;
             } else {
                 clearInterval(repeater);
                 document.getElementById('dice').style.color = "green"
             }
         }, 100);
+        return repeater
     }
 
-    var rollTheDice = function () {
-        var i,
-            faceValue,
-            output = '',
+    var rollTheDice = function (diceCount = null) {
+        var i, faceValue, output = ''
+        if (diceCount == null) {
             diceCount = document.querySelector('input[type=number]').value || 1;
+        }
         for (i = 0; i < diceCount; i++) {
             faceValue = Math.floor(Math.random() * 6);
             output += "&#x268" + faceValue + "; ";
         }
         document.getElementById('dice').innerHTML = output;
+        return output
     }
 
     function start() {
@@ -211,12 +282,18 @@ Currently playing:
             height: 700,
             parentNode: document.querySelector('#meet'),
             userInfo: {
-                displayName: prompt("Wie heißt Du Chummer?", "")
+                displayName: getName()
             }
         };
         api = new JitsiMeetExternalAPI(domain, options);
     }
 
+    var globalName = ""
+
+    function getName() {
+        globalName = prompt("Wie heißt Du Chummer?", "")
+        return globalName
+    }
 
     function updateCurrentlyPlaying() {
 
