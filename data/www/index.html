@@ -77,6 +77,7 @@ Currently playing:
         // section of the page.
         socket.on('my_response', function (msg, cb) {
             $('#log').append('<br>' + $('<div/>').text('Received #' + msg.count + ': ' + msg.data).html());
+            console.log("My Response from socketio:", msg)
             if (cb)
                 cb();
         });
@@ -102,6 +103,7 @@ Currently playing:
             for (var i = 0; i < ping_pong_times.length; i++)
                 sum += ping_pong_times[i];
             $('#ping-pong').text(Math.round(10 * sum / ping_pong_times.length) / 10);
+            console.log("Pong:", Math.round(10 * sum / ping_pong_times.length) / 10)
         });
 
         // Handlers for the different forms in the page.
@@ -224,7 +226,7 @@ Currently playing:
         xhr.addEventListener("readystatechange", function () {
             if (this.readyState === 4) {
                 let reply = JSON.parse(this.responseText);
-                console.log(reply.streams[0].songtitle);
+
                 document.getElementById("currently_playing").innerHTML = reply.streams[0].songtitle;
             }
         });
@@ -261,7 +263,6 @@ Currently playing:
             yourAudio.load();
             yourAudio.play();
         } else {
-            console.log(my_src)
             if (document.getElementById('my_src')) {
                 yourAudio.removeChild(document.getElementById('my_src'))
                 yourAudio.pause();
@@ -292,7 +293,6 @@ Currently playing:
         ];
 
         const random = Math.floor(Math.random() * images.length);
-        console.log(random, images[random]);
         imageNode.src = images[random]
 
 
