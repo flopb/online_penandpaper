@@ -22,11 +22,13 @@
     }
 </style>
 <body style="text-align:center;background-color: #000;color:#fff;">
+Ping: <span id="ping-pong">Not connected</span><br/>
 <audio style="display:none;" id="radio" controls="" preload="none" style="width:16em;padding:0;">
 </audio>
 Currently playing:
 <div id="currently_playing"></div>
 <br/><br/>
+
 <a style="" href="#" id="audioControl">start Radio</a><br/><br/>
 
 <img id="image" src="" style="border-radius: 10%;min-height: 250px;max-height: 250px;"/><br/>
@@ -36,17 +38,23 @@ Currently playing:
     <area shape="circle" coords="95,285,10" class="popable" data-text="left circle text" href="./bluepill.html">
     <area shape="circle" coords="340,290,13" class="popable" data-text="left circle text" href="javascript:start();">
 </map>
-<table id="playtime" style="display:none;">
+<table id="playtime" style="display:none;margin-top:-50px;">
     <tr>
         <td>
-            <div id="meet"></div>
+            <div style="position:relative;top:-95px;" id="meet"></div>
         </td>
         <td style="vertical-align: top;text-align:left;">
-            Dices: <input style="width:30px;" type="number" min="1" max="50">
-            <input id="button_public_dice" type="button" value="Roll Public">
-            <input id="button_private_dice" type="button" value="Roll Private"><br/><br/>
-            <div id="dice_message"></div>
-            <div id="dice" style="font-size: 100px;"></div>
+            Dices: <input style="width: 45px;height: 30px;" type="number" min="1" max="50">
+            <input style="height: 36px;" id="button_public_dice" type="button" value="Roll Public">
+            <input style="height: 36px;" id="button_private_dice" type="button" value="Roll Private">
+            <input style="height: 36px;" id="button_clear_dice" type="button" value="Clear">
+            <input id="dice-color" type="color" style="position: relative;top: 10px;height: 36px;" value="#FF69B4" onchange="setDiceColor(this.value)">
+            <div style="min-height: 20px;margin-top:10px;" id="dice_message"></div>
+            <div id="dice" style="font-size: 100px;min-height: 133px;margin-top: -30px;width:1000px;"></div>
+            Öffentliche Notizen
+            <div style=""><textarea style="width:500px; height: 200px;background-color: black;color: hotpink;font-family:'Orbitron';" id="public_textarea" onkeyup="sync_public_textarea();"></textarea></div>
+            Private Notizen
+            <div style=""><textarea style="width:500px; height: 150px;background-color: black;color: hotpink;font-family: 'Orbitron';" id="private_textarea"></textarea></div>
         </td>
     </tr>
 </table>
@@ -104,7 +112,12 @@ Currently playing:
             if (msg.data.call_function == "showRollResult") {
                 showDiceResult(msg.data.result, msg.data.user, msg.data.diceCount)
             }
+            if (msg.data.call_function == "updateTextareaPublic") {
+                updateTextareaPublic(msg.data.content)
+            }
         });
+
+
 
         // Interval function that tests message latency by sending a "ping"
         // message. The server then responds with a "pong" message and the
@@ -172,12 +185,34 @@ Currently playing:
 </script>
 <script src='https://meet.crowdsoft.net/external_api.js'></script>
 <script type="text/javascript">
+    function sync_public_textarea() {
+        let area_content = document.getElementById("public_textarea").value
+
+         socket.emit('my_broadcast_event', {
+            data: {
+                "call_function": "updateTextareaPublic",
+                "content": area_content
+            }
+        });
+    }
+
+    function updateTextareaPublic(content="") {
+        document.getElementById("public_textarea").value = content
+    }
+
     document.getElementById('button_public_dice').addEventListener('click', function () {
         rollDicesPublic();
     });
 
     document.getElementById('button_private_dice').addEventListener('click', function () {
         animateDiceRoll();
+        document.getElementById("dice_message").innerHTML = "Du würfelst privat:"
+    });
+
+    document.getElementById('button_clear_dice').addEventListener('click', function () {
+        document.getElementById("dice").innerHTML = ""
+        document.getElementById("dice_message").innerHTML = ""
+
     });
 
     function rollDicesPublic() {
@@ -211,7 +246,7 @@ Currently playing:
 
     function showDiceResult(result, user, diceCount) {
         clearInterval(globalRollIntervall)
-        document.getElementById('dice').style.color = "green"
+        document.getElementById('dice').style.color = document.getElementById("dice-color").value
         document.getElementById('dice_message').innerHTML = user + " hat " + diceCount + "W6 gewürfelt: ";
         document.getElementById('dice').innerHTML = result;
     }
@@ -231,7 +266,7 @@ Currently playing:
                 callCount += 1;
             } else {
                 clearInterval(repeater);
-                document.getElementById('dice').style.color = "green"
+                document.getElementById('dice').style.color = document.getElementById("dice-color").value
             }
         }, 100);
         return repeater
@@ -382,6 +417,10 @@ Currently playing:
         setRandomImage();
 
     }, false);
+
+    function setDiceColor(color) {
+        document.getElementById("dice").style.color=color
+    }
 </script>
 
 </body>
