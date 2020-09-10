@@ -183,7 +183,7 @@ Currently playing:
         });
     });
 </script>
-<script src='https://meet.crowdsoft.net/external_api.js'></script>
+<script src='https://meet.jit.si/external_api.js'></script>
 <script type="text/javascript">
     function sync_public_textarea() {
         let area_content = document.getElementById("public_textarea").value
@@ -310,9 +310,9 @@ Currently playing:
     var api = null;
 
     function startJitsi() {
-        const domain = 'meet.crowdsoft.net';
+        const domain = 'meet.jit.si';
         const options = {
-            roomName: 'Shadowrun',
+            roomName: 'Shadowrun' + prompt("Which Session you want to join?"),
             width: 700,
             height: 700,
             parentNode: document.querySelector('#meet'),
