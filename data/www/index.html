@@ -29,8 +29,12 @@ Currently playing:
 <div id="currently_playing"></div>
 <br/><br/>
 
-<a style="" href="#" id="audioControl">start Radio</a><br/><br/>
-
+<a style="" href="#" id="audioControl">start Radio</a>
+<span style="cursor:pointer;display:inline-block;width:30px;border:1px solid hotpink;color:hotpink;margin-left: 15px;font-size: 14pt;" onclick="volumeUp();">+</span>
+<span style="cursor:pointer;display:inline-block;width:30px;border:1px solid hotpink;color:hotpink;margin-left: 15px;font-size: 14pt;" onclick="volumeDown();">-</span>
+<span style="color:hotpink;margin-left: 15px;font-size: 14pt;">Volume:</span>
+<span style="color:hotpink;margin-left: 15px;font-size: 14pt;" id="volume"></span>
+<span style="color:hotpink;margin-left: 15px;font-size: 14pt;">%</span><br/><br/>
 <img id="image" src="" style="border-radius: 10%;min-height: 250px;max-height: 250px;"/><br/>
 
 <img usemap="#primary" id="start_button" src="./redblue.jpg"/>
@@ -350,6 +354,25 @@ Currently playing:
 
     let ctrl = document.getElementById('audioControl');
     ctrl.onclick = playPause
+    var yourAudio
+    function volumeUp() {
+        var yourAudio = document.getElementById('radio');
+        yourAudio.volume = yourAudio.volume + 0.1
+        updateVolumeDisplay()
+        return false;
+    }
+
+    function volumeDown() {
+        var yourAudio = document.getElementById('radio');
+        yourAudio.volume =  yourAudio.volume - 0.1
+        updateVolumeDisplay()
+        return false;
+    }
+
+    function updateVolumeDisplay() {
+        var yourAudio = document.getElementById('radio');
+        document.getElementById('volume').innerHTML = ((yourAudio.volume - 0.1) * 100 + 10).toFixed(0)
+    }
 
     function playPause(play = null) {
 
@@ -415,7 +438,7 @@ Currently playing:
         let imageChangeIntervall = window.setInterval(setRandomImage, 3000)
         updateCurrentlyPlaying();
         setRandomImage();
-
+        updateVolumeDisplay();
     }, false);
 
     function setDiceColor(color) {
