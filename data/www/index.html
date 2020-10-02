@@ -48,13 +48,16 @@ Currently playing:
             <div style="position:relative;top:-95px;" id="meet"></div>
         </td>
         <td style="vertical-align: top;text-align:left;">
-            Dices: <input style="width: 45px;height: 30px;" type="number" min="1" max="50">
+            Dices: <input id="dice_amount" style="width: 45px;height: 30px;" type="number" min="1" max="50">
             <input style="height: 36px;" id="button_public_dice" type="button" value="Roll Public">
             <input style="height: 36px;" id="button_private_dice" type="button" value="Roll Private">
             <input style="height: 36px;" id="button_clear_dice" type="button" value="Clear">
             <input id="dice-color" type="color" style="position: relative;top: 10px;height: 36px;" value="#FF69B4" onchange="setDiceColor(this.value)">
             <div style="min-height: 20px;margin-top:10px;" id="dice_message"></div>
             <div id="dice" style="font-size: 100px;min-height: 133px;margin-top: -30px;width:1000px;"></div>
+            <hr/>
+            Vorheriger Wurf:
+            <div id="previous_dice" style="font-size: 100px;min-height: 133px;margin-top: -30px;width:1000px;"></div>
             Öffentliche Notizen
             <div style=""><textarea style="width:500px; height: 200px;background-color: black;color: hotpink;font-family:'Orbitron';" id="public_textarea" onkeyup="sync_public_textarea();"></textarea></div>
             Private Notizen
@@ -256,6 +259,7 @@ Currently playing:
     }
 
     function animateDiceRoll(diceCount = null) {
+        document.getElementById("previous_dice").innerHTML = document.getElementById("dice").innerHTML
         document.getElementById('dice').style.color = "yellow"
         var callCount = 1;
         var maxrolls = 0;
@@ -283,10 +287,22 @@ Currently playing:
         }
         for (i = 0; i < diceCount; i++) {
             faceValue = Math.floor(Math.random() * 6);
-            output += "&#x268" + faceValue + "; ";
+            output += "<span data-marked='false' id='dice_" + i + "' onclick='markDice(this);'>&#x268" + faceValue + "; </span>";
         }
         document.getElementById('dice').innerHTML = output;
         return output
+    }
+
+    function markDice(dice_span) {
+        if(dice_span.getAttribute('data-marked') == "false") {
+            dice_span.setAttribute('data-marked', 'true');
+            dice_span.style.color = "green";
+        } else {
+            dice_span.setAttribute('data-marked', 'false');
+            dice_span.style.color = document.getElementById("dice-color").value;
+        }
+        document.getElementById("dice_amount").value = document.querySelectorAll("[data-marked='true']").length
+
     }
 
     function start() {
