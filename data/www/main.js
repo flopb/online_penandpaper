@@ -105,7 +105,7 @@ function drawLoop( time ) {
         $("#maxVolume").html(maxVolume)
     }
 
-    if(meter.volume > $("#triggerVolume").val()) {
+    if(meter.volume > 0.04) {
         console.log("SENDING RING")
         socket.emit('my_broadcast_event', {
             data: {
