@@ -84,6 +84,7 @@ function gotStream(stream) {
     // kick off the visual updating
     drawLoop();
 }
+var maxVolume = 0
 
 function drawLoop( time ) {
     // clear the background
@@ -99,7 +100,12 @@ function drawLoop( time ) {
         canvasContext.fillStyle = "green";
     $("#currentVolume").html(meter.volume)
 
-    if(meter.volume > 0.1) {
+    if(meter.volume > maxVolume) {
+        maxVolume = meter.volume
+        $("#maxVolume").html(maxVolume)
+    }
+
+    if(meter.volume > $("#triggerVolume").val()) {
         console.log("SENDING RING")
         socket.emit('my_broadcast_event', {
             data: {

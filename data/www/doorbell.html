@@ -91,12 +91,6 @@
                 //console.log("Pong:", Math.round(10 * sum / ping_pong_times.length) / 10)
             });
 
-            socket.on('door_ring', function () {
-                console.log("RECEIVED RING")
-                aud_reset_play()
-            });
-
-
         })
 
         function aud_reset_play() {
