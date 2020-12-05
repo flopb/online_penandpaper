@@ -94,7 +94,7 @@ function drawLoop( time ) {
 
     if (meter.checkClipping())  {
         canvasContext.fillStyle = "red";
-        doorbell()
+
     }
     else
         canvasContext.fillStyle = "green";

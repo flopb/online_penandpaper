@@ -60,9 +60,12 @@
                     cb();
 
                 if (msg.data.call_function == "ringring" && !alreadyRinging) {
+                    $("#status").show()
                     aud_reset_play()
                     alreadyRinging=true
-                    setTimeout(function() {alreadyRinging=false}, 15000)
+                    setTimeout(function() {
+                    alreadyRinging=false,
+                    $("#status").hide()}, 15000)
                 }
             });
 
@@ -101,6 +104,7 @@
     </script>
 </head>
 <body>
+<div id="status">RINGING</div>
 Ping: <span id="ping-pong">Not connected</span><br/>
 <audio id="myAudio" controls>
 
