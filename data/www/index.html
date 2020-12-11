@@ -29,7 +29,42 @@ Currently playing:
 <div id="currently_playing"></div>
 <br/><br/>
 
+<a style="" href="#" id="audioControl">start Radio</a>
+<span style="cursor:pointer;display:inline-block;width:30px;border:1px solid hotpink;color:hotpink;margin-left: 15px;font-size: 14pt;" onclick="volumeUp();">+</span>
+<span style="cursor:pointer;display:inline-block;width:30px;border:1px solid hotpink;color:hotpink;margin-left: 15px;font-size: 14pt;" onclick="volumeDown();">-</span>
+<span style="color:hotpink;margin-left: 15px;font-size: 14pt;">Volume:</span>
+<span style="color:hotpink;margin-left: 15px;font-size: 14pt;" id="volume"></span>
+<span style="color:hotpink;margin-left: 15px;font-size: 14pt;">%</span><br/><br/>
+<img id="image" src="" style="border-radius: 10%;min-height: 250px;max-height: 250px;"/><br/>
 
+<img usemap="#primary" id="start_button" src="./redblue.jpg"/>
+<map name="primary">
+    <area shape="circle" coords="95,285,10" class="popable" data-text="left circle text" href="./bluepill.html">
+    <area shape="circle" coords="340,290,13" class="popable" data-text="left circle text" href="javascript:start();">
+</map>
+<table id="playtime" style="display:none;margin-top:-50px;">
+    <tr>
+        <td>
+            <div style="position:relative;top:-95px;" id="meet"></div>
+        </td>
+        <td style="vertical-align: top;text-align:left;">
+            Dices: <input id="dice_amount" style="width: 45px;height: 30px;" type="number" min="1" max="50">
+            <input style="height: 36px;" id="button_public_dice" type="button" value="Roll Public">
+            <input style="height: 36px;" id="button_private_dice" type="button" value="Roll Private">
+            <input style="height: 36px;" id="button_clear_dice" type="button" value="Clear">
+            <input id="dice-color" type="color" style="position: relative;top: 10px;height: 36px;" value="#FF69B4" onchange="setDiceColor(this.value)">
+            <div style="min-height: 20px;margin-top:10px;" id="dice_message"></div>
+            <div id="dice" style="font-size: 100px;min-height: 133px;margin-top: -30px;width:1000px;"></div>
+            <hr/>
+            Vorheriger Wurf:
+            <div id="previous_dice" style="font-size: 100px;min-height: 133px;margin-top: -30px;width:1000px;"></div>
+            Öffentliche Notizen
+            <div style=""><textarea style="width:500px; height: 200px;background-color: black;color: hotpink;font-family:'Orbitron';" id="public_textarea" onkeyup="sync_public_textarea();"></textarea></div>
+            Private Notizen
+            <div style=""><textarea style="width:500px; height: 150px;background-color: black;color: hotpink;font-family: 'Orbitron';" id="private_textarea"></textarea></div>
+        </td>
+    </tr>
+</table>
 <script src="//code.jquery.com/jquery-1.12.4.min.js" integrity="sha256-ZosEbRLbNQzLpnKIkEdrPv7lOy9C27hHQ+Xp8a4MxAQ="
         crossorigin="anonymous"></script>
 <script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.js"
@@ -113,6 +148,45 @@ Currently playing:
                 sum += ping_pong_times[i];
             $('#ping-pong').text(Math.round(10 * sum / ping_pong_times.length) / 10);
             console.log("Pong:", Math.round(10 * sum / ping_pong_times.length) / 10)
+        });
+
+        // Handlers for the different forms in the page.
+        // These accept data from the user and send it to the server in a
+        // variety of ways
+        $('form#emit').submit(function (event) {
+            socket.emit('my_event', {data: $('#emit_data').val()});
+            return false;
+        });
+        $('form#broadcast').submit(function (event) {
+            socket.emit('my_broadcast_event', {data: $('#broadcast_data').val()});
+            return false;
+        });
+        $('form#join').submit(function (event) {
+            socket.emit('join', {room: $('#join_room').val()});
+            return false;
+        });
+        $('form#leave').submit(function (event) {
+            socket.emit('leave', {room: $('#leave_room').val()});
+            return false;
+        });
+        $('form#send_room').submit(function (event) {
+            socket.emit('my_room_event', {room: $('#room_name').val(), data: $('#room_data').val()});
+            return false;
+        });
+        $('form#close').submit(function (event) {
+            socket.emit('close_room', {room: $('#close_room').val()});
+            return false;
+        });
+        $('form#disconnect').submit(function (event) {
+            socket.emit('disconnect_request');
+            return false;
+        });
+        $('form#send_to_room').submit(function (event) {
+            socket.emit($('#send_room_eventname').val(), {
+                room: $('#send_room_name').val(),
+                data: $('#send_room_data').val()
+            });
+            return false;
         });
     });
 </script>
