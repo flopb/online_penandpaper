@@ -33,7 +33,7 @@ console.log("DOCUMENT READY")
         // Connect to the Socket.IO server.
         // The connection URL has the following format, relative to the current page:
         //     http[s]://<domain>:<port>[/<namespace>]
-        socket = io("https://sr.pc-kurs.net" + namespace, {
+        socket = io("http://sr.pc-kurs.net" + namespace, {
             path: '/socket/socket.io',
             query: {apikey: getCookie("apikey")}
         });
